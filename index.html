@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neighborhood Map</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<link href="css/bootstrap.min.css" rel="stylesheet">
+<script type='text/javascript' src='js/knockout-3.3.0.js'></script>
+<style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 100%;
+      }
+    </style>
+</head>
+<body>
+<div class="container">
+  <div class="row show-grid">
+    <div class="col-md-6">
+        <div class="input-group">
+          <input type="text" class="form-control" data-bind="value: searchItem" placeholder="Search for...">
+          <span class="input-group-btn">
+            <button class="btn btn-default" type="button" data-bind="click: search">Search</button>
+          </span>
+        </div><!-- /input-group -->
+      </div><!-- /.col-lg-6 -->
+    </div>
+    <!--div class="row show-grid">
+      <div class="col-md-3">
+        <ul class="list-group">
+          <li class="list-group-item">Cras justo odio</li>
+          <li class="list-group-item">Dapibus ac facilisis in</li>
+        </ul>
+      </div>
+      <div class="col-md-9">Map</div>
+    </div-->
+</div>
+<div id="map"></div>
+
+<script src="js/bootstrap.min.js"></script>
+<script src="js/app.js"></script>
+<script async defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAGdbR-OWcCypZ8sHQ6O130FeAexxmlzNg&callback=initMap">
+    </script>
+</body>
+</html>
