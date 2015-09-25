@@ -13,7 +13,7 @@ function initMap() {
     zoom: 16
   });
 }
-
+var marker;
 var markerList=[];
 var markerListByName={};
 var businessList =[{
@@ -156,6 +156,16 @@ var myViewModel = function(){
     //clearExistingMarkers();
     addMapMarkers(self.ResultList());
   }
+  function toggleBounce(marker) {
+    //console.log("toggle"+Object.keys(e));
+    if (marker.getAnimation() !== null) {
+      marker.setAnimation(null);
+    } else {
+      marker.setAnimation(google.maps.Animation.BOUNCE);
+      setTimeout(function() {
+        marker.setAnimation(null);},750);
+    }
+  }
 
   function addMapMarkers(businessList)
   {
@@ -178,13 +188,12 @@ var myViewModel = function(){
       }
       //var map = new google.maps.Map(document.getElementById("map"), mapOptions);
       bounds.extend(myLatlng);
-      marker = new google.maps.Marker({
+      var marker = new google.maps.Marker({
         position: myLatlng,
         title:name,
-        map:map
+        map:map,
+        animation: google.maps.Animation.DROP
       });
-      markerList.push(marker);
-      markerListByName[name]=marker;
       var contentString = '<div id="content">'+
       name+
       '<div id="bodyContent">'
@@ -207,8 +216,14 @@ var myViewModel = function(){
       marker.addListener('mouseout', function() {
         infowindow.close();
       });
+      marker.addListener('click', function(){
+        toggleBounce(marker);
+      });
+      markerList.push(marker);
+      markerListByName[name]=marker;
 
     });
+
 
     map.fitBounds(bounds);
   }
