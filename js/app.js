@@ -23,7 +23,7 @@ var map;
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
     center: {lat: 41.943, lng: -87.653},
-    zoom: 16
+    zoom: 20
   });
 }
 var prevInfowindow;
@@ -50,7 +50,7 @@ var myViewModel = function(){
   }
 
   /*
-  Filter the results when user types in teh searchbar.
+  Filter the results when user types in the searchbar.
   Also remove the markers which are not related to the items which matches
   the search criteria
   */
@@ -134,6 +134,11 @@ var myViewModel = function(){
 
         self.ResultList.removeAll();
         self.parseAPIResponse(data);
+      },
+      'timeout':3000,
+      'error':function (){
+        self.searchItem(self.searchItem()+" We encountered an error while contacting Yelp, please try again");
+
       }
     });
   }
@@ -218,7 +223,7 @@ var myViewModel = function(){
 
           var myLatlng = new google.maps.LatLng(latitude,longitude);
           var mapOptions = {
-            zoom: 8,
+            zoom: 15,
             center: myLatlng
           }
 
