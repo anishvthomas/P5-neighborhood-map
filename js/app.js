@@ -1,4 +1,4 @@
-//fix issue with map objecst and boostrap where the dic=v width by default is 1
+//fix issue with map objects and boostrap where the div width by default is 1
 $(window).resize(function () {
   var h = $(window).height(),
   offsetTop = 40; // Calculate the top offset
@@ -6,9 +6,10 @@ $(window).resize(function () {
   $('#map').css('height', (h - offsetTop));
   $('#ulresultlist').css('max-height', (h - offsetTop));
   //overflow: scroll
-  
+
 }).resize();
 
+//Activate items when they are clicked from the results list
 var current;
 var activateItem = function(el) {
   if (current) {
@@ -40,8 +41,6 @@ var myViewModel = function(){
 
   this.initializeBusinessList = function ()
   {
-    console.log("initializeBusinessList");
-    console.log("searchwith"+this.searchItem());
     self.search();
   }
 
@@ -50,11 +49,16 @@ var myViewModel = function(){
 
   }
 
+  /*
+  Filter the results when user types in teh searchbar.
+  Also remove the markers which are not related to the items which matches
+  the search criteria
+  */
   this.filterResults = function()
   {
-    console.log("filter:"+this.searchItem());
+
     this.ResultList().forEach(function(current,index,array){
-      console.log("forEach "+current.name+ " "+current.name.indexOf(self.searchItem()));
+
       if(current.name.indexOf(self.searchItem())!=-1)
       {
         //change visibility of the list item
@@ -70,9 +74,12 @@ var myViewModel = function(){
     return true;
   }
 
-
+  /*
+  Search in Yelp for the items entered in the searchbar
+  */
   this.search = function(){
 
+    //Object needed for Yelp API
     var auth = {
       consumerKey: "b3sCi6d9XHfIyf3w6kn7dQ",
       consumerSecret: "QvGK7RkbxbEJ1HqJ30NSlBYRWlo",
@@ -88,6 +95,8 @@ var myViewModel = function(){
       tokenSecret : auth.accessTokenSecret
     };
 
+    //Search location is hardcoded as Chicago
+
     var searchItem=self.searchItem();
     var searchLoc ="Chicago";
     var parameters = [];
@@ -99,9 +108,6 @@ var myViewModel = function(){
     parameters.push(['oauth_token', auth.accessToken]);
     parameters.push(['oauth_signature_method', 'HMAC-SHA1']);
 
-    /*
-    *	Create a JSON object "message" to pass on to OAuth.setTimestampAndNonce
-    */
     var message = {
       'action' : 'http://api.yelp.com/v2/search',
       'method' : 'GET',
@@ -110,8 +116,13 @@ var myViewModel = function(){
 
     OAuth.setTimestampAndNonce(message);
     OAuth.SignatureMethod.sign(message, accessor);
+
     var parameterMap = OAuth.getParameterMap(message.parameters);
-    console.log("Ajax call");
+
+    /*
+    Ajax call to Yelp
+    Clear the existing ResultList on successfull call
+    */
     $.ajax({
       'url' : message.action,
       'data' : parameterMap,
@@ -120,20 +131,24 @@ var myViewModel = function(){
       'global' : true,
       'jsonpCallback' : 'cb',
       'success' : function(data){
-        console.log(data);
+
         self.ResultList.removeAll();
         self.parseAPIResponse(data);
       }
     });
   }
 
+  /*
+
+  Parse the API result and get the information needed for display
+
+  */
   self.parseAPIResponse =function (data) {
-    console.log("parseAPIResponse"+data);
+
     var myBusinessArr = data["businesses"];
-    //console.log("businesss: "+ myBusinessArr.length);
+
     $.each (myBusinessArr, function (key, value){
-      //console.log("K "+key);
-      //console.log("v "+value["name"]);
+
       var image_url=value["image_url"];
       var phone=value["phone"];
       var name=value["name"];
@@ -146,21 +161,21 @@ var myViewModel = function(){
       businessItem["phone"]=phone;
       businessItem["name"]=name;
       businessItem["matchSearch"]=ko.observable(true);
-      //businessList[name]=businessItem;
+
       self.ResultList.push(businessItem);
 
       $.each(businessItem,function(key,value){
-        //  console.log(key+":"+"\""+value+"\"");
+
       });
-      //console.log(name+" -> "+businessList[name]+" "+businessList[name]["coordinate"]["latitude"]+" ,"+businessList[name]["coordinate"]["longitude"]);
+
     });
-    //clearExistingMarkers();
+
     addMapMarkers(self.ResultList());
   }
 
   //toggle the marker
   function toggleBounce(marker) {
-    //console.log("toggle"+Object.keys(e));
+
     if (marker.getAnimation() !== null) {
       marker.setAnimation(null);
     } else {
@@ -171,7 +186,7 @@ var myViewModel = function(){
     }
 
 
-    //Cliked the marker
+    //Clicked the marker
     function highlightItem(marker)
     {
       toggleBounce(marker);
@@ -199,14 +214,14 @@ var myViewModel = function(){
           var imageurl =item["image_url"];
           var phone = item["phone"];
 
-          //console.log("Iter "+name+" "+value["url"]+latitude+","+longitude);
+
 
           var myLatlng = new google.maps.LatLng(latitude,longitude);
           var mapOptions = {
             zoom: 8,
             center: myLatlng
           }
-          //var map = new google.maps.Map(document.getElementById("map"), mapOptions);
+
           bounds.extend(myLatlng);
 
           var contentString =
@@ -227,30 +242,21 @@ var myViewModel = function(){
             animation: google.maps.Animation.DROP,
             content:contentString
           });
-          //  console.log("contentString "+contentString)
-          /*var infowindow = new google.maps.InfoWindow({
-          content: contentString
 
-        });*/
-        marker.addListener('mouseover', function() {
-          //infowindow.open(map, marker);
+
+          marker.addListener('click', function(){
+            highlightItem(marker);
+          });
+          markerList.push(marker);
+          markerListByName[name]=marker;
+
         });
-        marker.addListener('mouseout', function() {
-          //infowindow.close();
-        });
-        marker.addListener('click', function(){
-          highlightItem(marker);
-        });
-        markerList.push(marker);
-        markerListByName[name]=marker;
-
-      });
 
 
-      map.fitBounds(bounds);
-    }
+        map.fitBounds(bounds);
+      }
 
-    //initalize
-    self.initializeBusinessList();
-  };
-  ko.applyBindings(new myViewModel());
+      //initalize on startup with a default serach for Pubs in Chicago
+      self.initializeBusinessList();
+    };
+    ko.applyBindings(new myViewModel());

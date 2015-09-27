@@ -1,5 +1,7 @@
 Neigbourhood Map Project
 
+Public URL - http://anishvthomas.github.io/P5-neighborhood-map/
+
 Search for any type of business from Yelp by enetering the buiness on the search bar and click Search
 
 The list is already pre-populated with "Pub"s from Chicago
