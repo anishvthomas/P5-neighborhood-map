@@ -6,38 +6,35 @@
   <title>Neighborhood Map</title>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
   <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/main.css" rel="stylesheet">
   <script type='text/javascript' src='js/knockout-3.3.0.js'></script>
-  <style>
-  html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-  }
-  #map {
-    height: 100%;
-  }
-  </style>
+
 </head>
 <body>
   <div class="container">
     <div class="row">
-      <div class="col-md-12">
-        <div class="col-md-4">
-          <div class="input-group">
-            <input class="form-control" data-bind='textInput: searchItem, event: { keyup: filterResults}' placeholder="Search for...">
-            <span class="input-group-btn">
-              <button class="btn btn-default" type="button" data-bind="click: search">Search</button>
-            </span>
-          </div><!-- /input-group -->
-          <div>
-            <ul class="list-group" data-bind="foreach: ResultList()">
-              <li class="list-group-item" data-bind="text: name, visible: matchSearch()"></li>
-            </ul>
-          </div>
-        </div><!-- /.col-lg-6 -->
-        <p>
-          <div class="col-md-8" id="map">
-          </p>
+      <div class="col-xs-12">
+        <div class="input-group">
+          <input class="form-control" data-bind='textInput: searchItem, event: { keyup: filterResults}' placeholder="Search for...">
+          <span class="input-group-btn">
+            <button class="btn btn-default" type="button" data-bind="click: search">Search</button>
+          </span>
+        </div><!-- /input-group -->
+
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-xs-4" id="resultlist">
+        <div id="ulresultlist">
+          <ul class="list-group" data-bind="foreach: ResultList()">
+            <li class="list-group-item" data-bind="text: name, visible: matchSearch(), click: $parent.selectedItem" onclick="activateItem(this)"></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="map-outer">
+        <div class="col-xs-12" id="map">
         </div>
       </div>
     </div>
@@ -46,7 +43,7 @@
 
 
   <script src="js/bootstrap.min.js"></script>
-  
+
   <script src="http://oauth.googlecode.com/svn/code/javascript/oauth.js"></script>
   <script src="http://oauth.googlecode.com/svn/code/javascript/sha1.js"></script>
 

@@ -1,0 +1,17 @@
+#resultlist{
+  position:absolute;
+  z-index: 2;
+}
+
+#map{
+  position:relative;
+  z-index: 1;
+}
+
+.map-outer{
+  padding-left: 15px;
+  padding-right: 15px;
+}
+#ulresultlist{
+  overflow: scroll;
+}

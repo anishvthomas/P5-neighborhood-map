@@ -1,10 +1,22 @@
 //fix issue with map objecst and boostrap where the dic=v width by default is 1
 $(window).resize(function () {
-    var h = $(window).height(),
-        offsetTop = 190; // Calculate the top offset
+  var h = $(window).height(),
+  offsetTop = 40; // Calculate the top offset
 
-    $('#map').css('height', (h - offsetTop));
+  $('#map').css('height', (h - offsetTop));
+  $('#ulresultlist').css('max-height', (h - offsetTop));
+  //overflow: scroll
+  
 }).resize();
+
+var current;
+var activateItem = function(el) {
+  if (current) {
+    current.classList.remove('active');
+  }
+  current = el;
+  el.classList.add('active');
+}
 
 var map;
 function initMap() {
@@ -13,18 +25,11 @@ function initMap() {
     zoom: 16
   });
 }
+var prevInfowindow;
 var marker;
 var markerList=[];
 var markerListByName={};
-var businessList =[{
-  latitude:"41.872136",
-  longitude:"-87.6413835",
-image_url:"http://s3-media2.fl.yelpcdn.com/bphoto/DSAIWI8LeGoGtM6EhGcwVg/ms.jpg",
-url:"http://www.yelp.com/biz/polk-street-pub-chicago",
-phone:"3127861142",
-name:"Polk Street Pub",
-matchSearch:ko.observable(false)
-}];
+var businessList =[];
 
 var myViewModel = function(){
 
@@ -40,6 +45,10 @@ var myViewModel = function(){
     self.search();
   }
 
+  this.selectedItem= function(data){
+    highlightItem(markerListByName[data.name]);
+
+  }
 
   this.filterResults = function()
   {
@@ -63,9 +72,6 @@ var myViewModel = function(){
 
 
   this.search = function(){
-    console.log("search:"+self.searchItem());
-
-
 
     var auth = {
       consumerKey: "b3sCi6d9XHfIyf3w6kn7dQ",
@@ -77,17 +83,11 @@ var myViewModel = function(){
       }
     };
 
-    /*
-    *	Create a variable "accessor" to pass on to OAuth.SignatureMethod
-    */
     var accessor = {
       consumerSecret : auth.consumerSecret,
       tokenSecret : auth.accessTokenSecret
     };
 
-    /*
-    *	Create a array object "parameter" to pass on "message" JSON object
-    */
     var searchItem=self.searchItem();
     var searchLoc ="Chicago";
     var parameters = [];
@@ -121,6 +121,7 @@ var myViewModel = function(){
       'jsonpCallback' : 'cb',
       'success' : function(data){
         console.log(data);
+        self.ResultList.removeAll();
         self.parseAPIResponse(data);
       }
     });
@@ -149,13 +150,15 @@ var myViewModel = function(){
       self.ResultList.push(businessItem);
 
       $.each(businessItem,function(key,value){
-      //  console.log(key+":"+"\""+value+"\"");
+        //  console.log(key+":"+"\""+value+"\"");
       });
       //console.log(name+" -> "+businessList[name]+" "+businessList[name]["coordinate"]["latitude"]+" ,"+businessList[name]["coordinate"]["longitude"]);
     });
     //clearExistingMarkers();
     addMapMarkers(self.ResultList());
   }
+
+  //toggle the marker
   function toggleBounce(marker) {
     //console.log("toggle"+Object.keys(e));
     if (marker.getAnimation() !== null) {
@@ -163,72 +166,91 @@ var myViewModel = function(){
     } else {
       marker.setAnimation(google.maps.Animation.BOUNCE);
       setTimeout(function() {
-        marker.setAnimation(null);},750);
-    }
-  }
-
-  function addMapMarkers(businessList)
-  {
-    var pos=1;
-    var bounds = new google.maps.LatLngBounds();
-
-  //  $.each (businessList, function (key, value) {
-      businessList.forEach(function(item,index,array){
-      var name = item["name"];
-      var latitude= item["latitude"];
-      var longitude= item["longitude"];
-      var url =item["url"];
-      var imageurl =item["image_url"];
-      //console.log("Iter "+name+" "+value["url"]+latitude+","+longitude);
-
-      var myLatlng = new google.maps.LatLng(latitude,longitude);
-      var mapOptions = {
-        zoom: 8,
-        center: myLatlng
+        marker.setAnimation(null);},1000);
       }
-      //var map = new google.maps.Map(document.getElementById("map"), mapOptions);
-      bounds.extend(myLatlng);
-      var marker = new google.maps.Marker({
-        position: myLatlng,
-        title:name,
-        map:map,
-        animation: google.maps.Animation.DROP
-      });
-      var contentString = '<div id="content">'+
-      name+
-      '<div id="bodyContent">'
-      +'<img src="'+imageurl+'">'+
-      '<p>'+
-      '<a href="'+url+'">'+
-      url+
-      '</p>'+
-      '</div>'+
-      '</div>';
+    }
 
-      //  console.log("contentString "+contentString)
+
+    //Cliked the marker
+    function highlightItem(marker)
+    {
+      toggleBounce(marker);
+      map.panTo(marker.getPosition());
       var infowindow = new google.maps.InfoWindow({
-        content: contentString
-
-      });
-      marker.addListener('mouseover', function() {
+        content: marker.content,
+        maxWidth:250});
+        if(prevInfowindow)
+        prevInfowindow.close();
         infowindow.open(map, marker);
+        prevInfowindow= infowindow;
+      }
+
+      function addMapMarkers(businessList)
+      {
+        var pos=1;
+        var bounds = new google.maps.LatLngBounds();
+
+        //  $.each (businessList, function (key, value) {
+        businessList.forEach(function(item,index,array){
+          var name = item["name"];
+          var latitude= item["latitude"];
+          var longitude= item["longitude"];
+          var url =item["url"];
+          var imageurl =item["image_url"];
+          var phone = item["phone"];
+
+          //console.log("Iter "+name+" "+value["url"]+latitude+","+longitude);
+
+          var myLatlng = new google.maps.LatLng(latitude,longitude);
+          var mapOptions = {
+            zoom: 8,
+            center: myLatlng
+          }
+          //var map = new google.maps.Map(document.getElementById("map"), mapOptions);
+          bounds.extend(myLatlng);
+
+          var contentString =
+          '<div id="content">'
+          +'<h6>'+name+'</h6>'
+          +'<div id="bodyContent">'
+          +'<p>'+phone+'</p>'
+          +'<p> <img src="'+imageurl+'"></p>'
+          +'<p><a href="'+url+'">Yelp</a>'
+          +'</p>'
+          +'</div>'
+          +'</div>';
+
+          var marker = new google.maps.Marker({
+            position: myLatlng,
+            title:name,
+            map:map,
+            animation: google.maps.Animation.DROP,
+            content:contentString
+          });
+          //  console.log("contentString "+contentString)
+          /*var infowindow = new google.maps.InfoWindow({
+          content: contentString
+
+        });*/
+        marker.addListener('mouseover', function() {
+          //infowindow.open(map, marker);
+        });
+        marker.addListener('mouseout', function() {
+          //infowindow.close();
+        });
+        marker.addListener('click', function(){
+          highlightItem(marker);
+        });
+        markerList.push(marker);
+        markerListByName[name]=marker;
+
       });
-      marker.addListener('mouseout', function() {
-        infowindow.close();
-      });
-      marker.addListener('click', function(){
-        toggleBounce(marker);
-      });
-      markerList.push(marker);
-      markerListByName[name]=marker;
-
-    });
 
 
-    map.fitBounds(bounds);
-  }
+      map.fitBounds(bounds);
+    }
 
-  //initalize
-  self.initializeBusinessList();
-};
-ko.applyBindings(new myViewModel());
+    //initalize
+    self.initializeBusinessList();
+  };
+  ko.applyBindings(new myViewModel());
