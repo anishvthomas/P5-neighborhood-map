@@ -56,10 +56,10 @@ var myViewModel = function(){
   */
   this.filterResults = function()
   {
-
+    var searchText = self.searchItem().toLowerCase();
     this.ResultList().forEach(function(current,index,array){
 
-      if(current.name.indexOf(self.searchItem())!=-1)
+      if(current.name.toLowerCase().indexOf(searchText)!=-1)
       {
         //change visibility of the list item
         current.matchSearch(true);
